@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
-# Global list to store product names that are successfully sent
+# Global list to store product names that are successfully q sent
 sent_products = []
 
 # Dictionary to store the time each product was last sent
