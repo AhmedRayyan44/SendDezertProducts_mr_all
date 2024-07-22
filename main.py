@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
-# Global list to store product names that are successfully q sent
+# Global list to store product names that are successfully sent
 sent_products = []
 
 # Dictionary to store the time each product was last sent
@@ -13,7 +13,8 @@ product_send_times = {}
 special_products = ["بيربل مست", "هايلاند بيريز", "سبايسي زيست"]
 
 # List of products to exclude from sending
-excluded_products = ["", "", ""]
+#excluded_products = ["هيلة", "تمرة", "سمرة"]
+excluded_products = [""]
 
 # Variable to store the time of the last clearing of the sent_products list
 last_clear_time = time.time()
@@ -42,7 +43,7 @@ def extract_product_details(product_url):
         html_content = response.content
         soup = BeautifulSoup(html_content, "html.parser")
         product_name = soup.find("span", class_="base", itemprop="name").text.strip()
-        product_status_element = soup.find("div", class_="stock available").span
+        product_status_element = soup.find("div", class_="stock unavailable").span
         product_status = product_status_element.text.strip() if product_status_element else None
         # Extract all image URLs and find the one containing the desired pattern
         images = soup.find_all("img")
@@ -85,19 +86,17 @@ def send_product_data_to_telegram():
             product_status = product_data.get("status", "")
             product_url = product_data.get("url", "")
             image_url = product_data.get("image_url", "")
-            if product_status == "متوفر" and product_name not in excluded_products:
+            if product_status == "سيتم توفيرها في المخزون قريباً" and product_name not in excluded_products:
                 current_time = time.time()
                 if product_name in special_products:
                     if (product_name not in sent_products) or (current_time - product_send_times.get(product_name, 0) >= (3 * 600)):
-                        message_text = f"اسم المنتج: {product_name}\nحالة المنتج: {product_status}"
-                        reply_markup = {
-                            "inline_keyboard": [
-                                [{"text": "عرض المنتج", "url": product_url}],
-                                [{"text": "عرض السلة", "url": "https://www.dzrt.com/ar/checkout/cart"}],
-                                [{"text": "تسجيل الدخول", "url": "https://www.dzrt.com/ar/customer/account/login/"}],
-                                [{"text": "الانتقال إلى رابط الدفع النهائي", "url": "https://www.dzrt.com/ar/onestepcheckout.html"}]
-                            ]
-                        }
+                         message_text = f"✅ **المنتج متاح** ✅: {product_name}"
+                         reply_markup = {
+            "inline_keyboard": [
+                [{"text": "🔍 عرض المنتج", "url": product_link}, {"text": "🛒 عرض السلة", "url": "https://www.dzrt.com/ar/checkout/cart"}],
+                [{"text": "🔐 تسجيل الدخول", "url": "https://www.dzrt.com/ar/customer/account/login/"}, {"text": "💳 الانتقال إلى رابط الدفع النهائي", "url": "https://www.dzrt.com/ar/onestepcheckout.html"}]
+            ]
+        }
                         params = {
                             "chat_id": chat_id,
                             "photo": image_url,
@@ -113,15 +112,13 @@ def send_product_data_to_telegram():
                             print(f"Failed to send product data for {product_name}. Status code: {response.status_code}")
                 else:
                     if product_name not in sent_products:
-                        message_text = f"اسم المنتج: {product_name}\nحالة المنتج: {product_status}"
-                        reply_markup = {
-                            "inline_keyboard": [
-                                [{"text": "عرض المنتج", "url": product_url}],
-                                [{"text": "عرض السلة", "url": "https://www.dzrt.com/ar/checkout/cart"}],
-                                [{"text": "تسجيل الدخول", "url": "https://www.dzrt.com/ar/customer/account/login/"}],
-                                [{"text": "الانتقال إلى رابط الدفع النهائي", "url": "https://www.dzrt.com/ar/onestepcheckout.html"}]
-                            ]
-                        }
+                         message_text = f"✅ **المنتج متاح** ✅: {product_name}"
+                         reply_markup = {
+            "inline_keyboard": [
+                [{"text": "🔍 عرض المنتج", "url": product_link}, {"text": "🛒 عرض السلة", "url": "https://www.dzrt.com/ar/checkout/cart"}],
+                [{"text": "🔐 تسجيل الدخول", "url": "https://www.dzrt.com/ar/customer/account/login/"}, {"text": "💳 الانتقال إلى رابط الدفع النهائي", "url": "https://www.dzrt.com/ar/onestepcheckout.html"}]
+            ]
+        }
                         params = {
                             "chat_id": chat_id,
                             "photo": image_url,
